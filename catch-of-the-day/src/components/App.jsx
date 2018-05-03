@@ -4,12 +4,28 @@ import Order from "./Order";
 import Inventory from "./Inventory";
 import SampleFishes from "../sample-fishes";
 import Fish from "./Fish";
+import base from "../base";
 
 class App extends React.Component {
   state = {
     fishes: {},
     order: {}
   };
+  componentDidMount() {
+    // We only want the database of OUR STORE => SO we fetch the name of the store from App props
+    // To nest the fishes inside the store name, we add them fter a slash /
+    const { params } = this.props.match;
+    this.ref = base.syncState(`${params.storeId}/fishes`, {
+      context: this,
+      state: "fishes" // Object to be synchronized
+    });
+  }
+
+  componentWillUnmount() {
+    // Used to clean the store, to avoid a memory lick. When we leave, we remove the store from firebase.
+    base.removeBinding(this.ref);
+  }
+
   addFish = fish => {
     // 1. Take a copy of the existing state
     const fishes = { ...this.state.fishes };
