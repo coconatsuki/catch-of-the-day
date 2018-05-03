@@ -12,18 +12,30 @@ class App extends React.Component {
     order: {}
   };
   componentDidMount() {
-    // We only want the database of OUR STORE => SO we fetch the name of the store from App props
-    // To nest the fishes inside the store name, we add them fter a slash /
+    // We only want the database of OUR STORE (Our App instance) => SO we fetch the name of the store from App props
+    // To create a hierarchy in firebase, we give it the store name, and we nest the fishes inside, adding them after a slash /
     const { params } = this.props.match;
+    const localStorageRef = localStorage.getItem(params.storeId);
+    if (localStorageRef) {
+      this.setState({ order: JSON.parse(localStorageRef) });
+    }
     this.ref = base.syncState(`${params.storeId}/fishes`, {
+      // ref = reference to a piece of data we want to mirror
       context: this,
       state: "fishes" // Object to be synchronized
     });
   }
 
   componentWillUnmount() {
-    // Used to clean the store, to avoid a memory lick. When we leave, we remove the store from firebase.
+    // Used to clean the store (this App instance), to avoid a memory lick. When we leave, we remove the store from firebase.
     base.removeBinding(this.ref);
+  }
+
+  componentDidUpdate() {
+    localStorage.setItem(
+      this.props.match.params.storeId,
+      JSON.stringify(this.state.order)
+    );
   }
 
   addFish = fish => {
